@@ -162,7 +162,8 @@ def plot_compare_normalized_by_J1(E2_expr, B2_expr, J1_expr, r_sym,
     ax0.plot(r, B2n, color=cB, label=r"$B^2/|J_1|$")
     ax0.set_xlabel(r"$r/M$")
     ax0.set_ylabel(r"Normalized magnitude")
-    ax0.set_yscale("symlog", linthresh=1e-6)
+    #ax0.set_yscale("symlog", linthresh=1e-6)
+    ax0.set_yscale("linear")
     ax0.legend(frameon=False, loc="best")
 
     # --- Right panel: ratio ---

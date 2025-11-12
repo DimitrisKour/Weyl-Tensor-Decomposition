@@ -309,40 +309,22 @@ def norm_EB(E, B, metric, show_results=True):
 
         |E|^2 = E_ab E^ab
         |B|^2 = B_ab B^ab
-
-    Parameters
-    ----------
-    E, B : sympy.Matrix
-        Electric and magnetic parts of the Weyl tensor.
-    metric : MetricTensor
-        EinsteinPy MetricTensor object (provides g_ab).
-    show_results : bool, optional
-        If True, display results in LaTeX using MathJax.
-
-    Returns
-    -------
-    dict with:
-        'E2' : sympy.Expr
-            Scalar |E|^2 = E_ab E^ab
-        'B2' : sympy.Expr
-            Scalar |B|^2 = B_ab B^ab
     """
-    g = Matrix(metric.tensor())
+    g = sp.Matrix(metric.tensor())
     g_inv = g.inv()
 
-    # raise one index on E, B: E^a{}_b = g^{ac} E_cb
-    E_up = g_inv * E
-    B_up = g_inv * B
+    # Raise both indices: E^{ab} = g^{ac} g^{bd} E_cd
+    E_upup = g_inv * E * g_inv
+    B_upup = g_inv * B * g_inv
 
-    # compute E_ab E^ab etc.
-    E2 = sp.simplify(sp.Add(*[E_up[i, j] * E[i, j] for i in range(E.rows) for j in range(E.cols)]))
-    B2 = sp.simplify(sp.Add(*[B_up[i, j] * B[i, j] for i in range(B.rows) for j in range(B.cols)]))
+    # Contract: E_ab E^ab = Σ E_ab * E^ab
+    E2 = sp.simplify(sum(E[i, j] * E_upup[i, j] for i in range(E.rows) for j in range(E.cols)))
+    B2 = sp.simplify(sum(B[i, j] * B_upup[i, j] for i in range(B.rows) for j in range(B.cols)))
 
     if show_results:
         display(Math(r"|E|^2 = " + sp.latex(E2) + r", \quad |B|^2 = " + sp.latex(B2)))
 
     return {"E2": E2, "B2": B2}
-
 
 def check_trace(E, B, metric):
     """

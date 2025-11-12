@@ -173,16 +173,19 @@ def levi_civita_down(g):
     return eps
 
 def raise_indices(tensor, gi, n_up):
-    # Raise 'n_up' indices from the left of a (0,k) tensor with metric inverse.
+    """
+    Raise 'n_up' indices of a (0,k) tensor using the metric inverse gi.
+    Currently supports rank-2 tensors.
+    """
     T = tensor.copy()
-    for _ in range(n_up):
-        # raise the first index
-        new = np.zeros_like(T)
-        for a in range(4):
-            for i in range(4):
-                new[a,...] += gi[a,i]*T[i,...]
-        T = new
-    return T
+    if n_up == 1:
+        # Raise first index: T^a{}_b = g^{ac} T_cb
+        return np.einsum("ac,cb->ab", gi, T)
+    elif n_up == 2:
+        # Raise both: T^{ab} = g^{ac} g^{bd} T_cd
+        return np.einsum("ac,bd,cd->ab", gi, gi, T)
+    else:
+        raise ValueError("Only supports n_up = 1 or 2 for rank-2 tensors")
 
 def EB_from_Weyl(C, g, gi, u):
     # E_ab = C_{acbd} u^c u^d ;  B_ab = 1/2 ε_{ac}{}^{ef} C_{efbd} u^c u^d
@@ -223,9 +226,8 @@ def EB_from_Weyl(C, g, gi, u):
     E_up = E.copy()
     B_up = B.copy()
     # raise both indices:
-    for idx in range(2):
-        E_up = raise_indices(E_up, gi, 1)
-        B_up = raise_indices(B_up, gi, 1)
+    E_up = raise_indices(E, gi, 2)
+    B_up = raise_indices(B, gi, 2)
     return E, B, E_up, B_up
 
 def invariants_from_EB(E, B, E_up, B_up):
